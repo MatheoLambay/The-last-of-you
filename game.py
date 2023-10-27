@@ -251,7 +251,7 @@ class ApplicationJeux(tk.Tk):
 
                 self.vagueZombie('rouge','bleu',chance=10)
             
-            elif  self.score_joueur > 500:
+            elif  self.score_joueur >= 500:
                 
                 self.vagueZombie('bleu')
 
