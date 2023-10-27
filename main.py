@@ -3,7 +3,7 @@ from game import *
 from score import ApplicationScore
 from info import ApplicationInfo
 
-
+#TLOY
 
 CONFIG = {
     
