@@ -1,3 +1,4 @@
+#by Mathéo Lambay and Zakaria Ouafi
 from tkinter import *
 from game import *
 from score import ApplicationScore
