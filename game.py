@@ -97,6 +97,10 @@ class ApplicationJeux(tk.Tk):
         
         self.ecran.grid(row=1,column=2) # placement de la frame
         
+        # CREATION DU JOUEUR
+
+        self.joueur = Joueur(self.canvas,self.life_joueur,self.atk_joueur) # vie, attaque
+
         # INTERFACE DE GAUCHE (canvas gauche) #
         
         self.ecran_gauche = tk.Frame(self.jeux)
@@ -106,9 +110,13 @@ class ApplicationJeux(tk.Tk):
         self.canvas_gauche.create_image(105,360,image = self.wall2)
         
         # Creer l'affichage du Chronometre et l'applique dans le mode de jeu "Survie"
+        
         if CONFIG["mode"] ==  'survie':
             self.timer = self.canvas_gauche.create_text(100,110, text="00:00:00", font=("Arial", 24),fill=CONFIG["fontColor"])
+            self.survie_mode = True
             self.demarrerTimer()
+        else:
+            self.survie_mode = False
             
         self.canvas_gauche.pack()
         
@@ -124,6 +132,9 @@ class ApplicationJeux(tk.Tk):
         
         self.score_text = self.canvas_droite.create_text(100,110,text=self.score_joueur,font=("Comic Sans MS",14),fill=CONFIG["fontColor"])
         self.life_text = self.canvas_droite.create_text(100,320,text=self.life_joueur,font=("Comic Sans MS",14),fill=CONFIG["fontColor"])
+        if not(self.survie_mode):
+            self.ultimate_indicator = self.canvas_droite.create_text(100,490,text="Ultimate",font=("Comic Sans MS",25),fill=CONFIG["fontColor"])
+            self.ultimate_text = self.canvas_droite.create_text(100,530,text=self.joueur.ultime_state,font=("Comic Sans MS",25),fill=CONFIG["fontColor"])
 
         self.canvas_droite.pack()
         self.ecran_droite.grid(row=1,column=3) # placement de la frame 
@@ -176,12 +187,13 @@ class ApplicationJeux(tk.Tk):
 
         self.canvas.grid(row=1, column=1) # placement du canvas
         
-    
+        
+        
         self.canvas.bind("<Button-1>", self.on_click) # appelle la fonction on_clique grace au clique gauche dans le canvas (ecran de jeux)
         self.canvas.bind("<Motion>", self.orientationJoueur)
-        # CREATION DU JOUEUR
-
-        self.joueur = Joueur(self.canvas,self.life_joueur,self.atk_joueur) # vie, attaque
+        
+        if not(self.survie_mode):
+            self.canvas.bind('<Button-3>',self.ultime)
 
         # LANCEMENT DU JEU
         self.spawn()
@@ -290,7 +302,7 @@ class ApplicationJeux(tk.Tk):
         
         if color_random == 'rouge': #réduit les chances de tomber sur un zombies rouge(zombie le plus puissant)
             nbr = random.randint(0,100)
-            if  nbr <= chance:
+            if  nbr >= chance:
                 color_random = 'vert'
                 
         type_zombie = self.colorZombie(color_random) #appelle la fonction colorZombie qui renvoit les textures en fonction de la  couleur du zombies généré 
@@ -380,8 +392,16 @@ class ApplicationJeux(tk.Tk):
                         if self.zombies[id].life <= 0: #si la vie du zombies égale à 0
                             self.canvas.itemconfig(self.zombies[id],image = self.blue_gauche_damaged1)
                             self.score_joueur+= self.zombies[id].score   
-                            
-                            # Mise à jour du Score #    
+
+                            #reduction décompte ultime
+                            self.joueur.ultime_state -= 1
+                            if not(self.survie_mode):
+                                if self.joueur.ultime_state <= 0:
+                                    self.canvas_droite.itemconfig(self.ultimate_text,text="ready",fill='green')
+                                    
+                                else:
+                                    self.canvas_droite.itemconfig(self.ultimate_text,text=self.joueur.ultime_state)
+                                # Mise à jour du Score #    
                             global SCORE
                             
                             SCORE=self.score_joueur
@@ -457,6 +477,18 @@ class ApplicationJeux(tk.Tk):
             elif 500 < x < 580 and 400 < y < 720:
                 self.canvas.itemconfig(self.joueur_canvas,image = self.joueur_bas)
 
+    def ultime(self, event):
+    
+        if self.joueur.ultime_state <= 0 and self.joueur.life > 0:
+            for i in self.zombies:
+                self.canvas.delete(i)
+                self.score_joueur += 10
+                global SCORE
+                SCORE = self.score_joueur
+            self.zombies = {}
+            self.joueur.ultime_state = 20
+            self.canvas_droite.itemconfig(self.score_text,text=SCORE)
+            self.canvas_droite.itemconfig(self.ultimate_text,text=self.joueur.ultime_state,fill=CONFIG["fontColor"])
            
 class Zombie:   
     def __init__(self,canvas,canvas_gauche,canvas_joueur,coord_start,coord_x,coord_y,orientation,life=1,atk=1,score=10,couleur='vert'):
@@ -526,7 +558,8 @@ class Joueur:
         self.canvas = canvas
         self.life = life
         self.atk = atk
-
+        self.ultime_state = 20
+        
     def tirer(self,cible):
         
         cible.life -= self.atk 
