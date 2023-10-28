@@ -1,4 +1,4 @@
-#by Mathéo Lambay and Zakaria Ouafi
+#by Mathéo Lambay and Zakaria Ouaffi
 from tkinter import *
 from game import *
 from score import ApplicationScore
