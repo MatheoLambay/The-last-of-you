@@ -486,9 +486,10 @@ class ApplicationJeux(tk.Tk):
                 global SCORE
                 SCORE = self.score_joueur
             self.zombies = {}
-            self.joueur.ultime_state = 20
+            self.joueur.ultime_state = 20 + self.joueur.ultime_compt 
             self.canvas_droite.itemconfig(self.score_text,text=SCORE)
             self.canvas_droite.itemconfig(self.ultimate_text,text=self.joueur.ultime_state,fill=CONFIG["fontColor"])
+            self.joueur.ultime_compt +=5 
            
 class Zombie:   
     def __init__(self,canvas,canvas_gauche,canvas_joueur,coord_start,coord_x,coord_y,orientation,life=1,atk=1,score=10,couleur='vert'):
@@ -559,6 +560,7 @@ class Joueur:
         self.life = life
         self.atk = atk
         self.ultime_state = 20
+        self.ultime_compt = 0
         
     def tirer(self,cible):
         
